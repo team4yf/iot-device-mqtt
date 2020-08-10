@@ -1,0 +1,6 @@
+app
+__debug_bin
+bin/
+conf/*/data/*.aof
+conf/*/data
+logs/
