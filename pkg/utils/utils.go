@@ -80,6 +80,14 @@ func StringToStruct(data string, desc interface{}) (err error) {
 	return
 }
 
+//DataToStruct convert the data to struct
+func DataToStruct(data []byte, desc interface{}) (err error) {
+	if err = json.Unmarshal(data, desc); err != nil {
+		return
+	}
+	return
+}
+
 // GenShortID 生成一个id
 func GenShortID() string {
 	sid, _ := shortid.Generate()
