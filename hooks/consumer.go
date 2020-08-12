@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
@@ -11,11 +12,12 @@ import (
 )
 
 const (
-	cmdFfmpeg = "ffmpeg "
-	cmdOnvif  = "onvif"
+	cmdFfmpeg = "ffmpeg -i rtsp://%s:%s@%s:554/h264/1/sub/av_stream -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 100k -bf 0 -muxdelay 0.001 http://open.yunplus.io:18081/fpmpassword/%s"
+	cmdOnvif  = "onvif-ptz %s --baseUrl=http://%s:80 -u=%s -p=%s -x=%f -y=%f -z=%f"
 	cmdNmap   = "nmap"
 	cmdPs     = "ps -ef | grep %s"
 	cmdLsof   = "lsof -i:%d"
+	cmdIP     = "ip addr | grep 'inet' | grep -v '127.0.0.1' | grep -v 'inet6' | cut -d: -f2 | awk '{print $2}' | head -1 | awk -F / '{print $1}'"
 )
 
 type executeBody struct {
@@ -37,6 +39,17 @@ func runCommand(fpm *fpm.Fpm, mq *pubsub.PubSub, execute *executeBody) {
 	finalCommand := ""
 	switch execute.Command {
 	case "ffmpeg":
+		//check exists
+		out, err := utils.RunCmd("ps -ef | grep ffmpeg | grep " + execute.Argument[len(execute.Argument)-1].(string) + ` | grep -v "grep" |wc -l`)
+		if err == nil {
+			//count the ffmpeg process instance
+			count := strings.Trim((string)(out), " \n")
+			fmt.Printf("count=|%s|\n", count)
+			if count != "0" {
+				// exists
+				return
+			}
+		}
 		finalCommand = fmt.Sprintf(cmdFfmpeg, execute.Argument...)
 	case "onvif":
 		finalCommand = fmt.Sprintf(cmdOnvif, execute.Argument...)
@@ -46,6 +59,8 @@ func runCommand(fpm *fpm.Fpm, mq *pubsub.PubSub, execute *executeBody) {
 		finalCommand = fmt.Sprintf(cmdPs, execute.Argument...)
 	case "lsof":
 		finalCommand = fmt.Sprintf(cmdLsof, execute.Argument...)
+	case "ip":
+		finalCommand = cmdIP
 	}
 
 	out, err := utils.RunCmd(finalCommand)
