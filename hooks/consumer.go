@@ -14,7 +14,7 @@ import (
 const (
 	cmdFfmpeg = "ffmpeg -i rtsp://%s:%s@%s:554/h264/1/sub/av_stream -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 100k -bf 0 -muxdelay 0.001 http://open.yunplus.io:18081/fpmpassword/%s"
 	cmdOnvif  = "onvif-ptz %s --baseUrl=http://%s:80 -u=%s -p=%s -x=%f -y=%f -z=%f"
-	cmdNmap   = "nmap"
+	cmdNmap   = `nmap -p %s localhost | grep -E "^[1-9]" | awk '{print $1","$2 }' | sed "s/\/tcp//" | sed "s/\/udp//"`
 	cmdPs     = "ps -ef | grep %s"
 	cmdLsof   = "lsof -i:%d"
 	cmdIP     = "ip addr | grep 'inet' | grep -v '127.0.0.1' | grep -v 'inet6' | cut -d: -f2 | awk '{print $2}' | head -1 | awk -F / '{print $1}'"
@@ -33,6 +33,33 @@ type feedbackBody struct {
 	Code      int    `json:"code"`
 	Error     string `json:"error,omitempty"`
 	Data      string `json:"data,omitempty"`
+}
+
+type beatBody struct {
+	LocalIP   string          `json:"localIP"`
+	GatewayID string          `json:"gatewayID"`
+	TimeStamp int64           `json:"timestamp"`
+	Cameras   map[string]bool `json:"cameras"`
+}
+
+func interval(cameras []string) (beatMessage *beatBody, err error) {
+	beatMessage = &beatBody{
+		LocalIP: utils.GetLocalIP(),
+		// TODO: read from the env/arg
+		GatewayID: "demo",
+		TimeStamp: time.Now().Unix(),
+		Cameras:   make(map[string]bool, len(cameras)),
+	}
+	for _, cameraIP := range cameras {
+		beatMessage.Cameras[cameraIP] = false
+		out, err := utils.RunCmd(fmt.Sprintf(`nmap -p 554 %s | grep -E "^[1-9]" | awk '{print $1","$2 }' | sed "s/\/tcp//" | sed "s/\/udp//" | grep open| wc -l`, cameraIP))
+		if err != nil {
+			return nil, err
+		}
+		count := strings.Trim((string)(out), " \n")
+		beatMessage.Cameras[cameraIP] = (count != "0")
+	}
+	return
 }
 
 func runCommand(fpm *fpm.Fpm, mq *pubsub.PubSub, execute *executeBody) {
@@ -86,7 +113,7 @@ func runCommand(fpm *fpm.Fpm, mq *pubsub.PubSub, execute *executeBody) {
 		feedback.Data = (string)(out)
 	}
 	feedbackStr := utils.JSON2String(feedback)
-	go (*mq).Publish("$d2s/aa/ipc/feedback", ([]byte)(feedbackStr))
+	go (*mq).Publish("$d2s/yunplus/ipc/feedback", ([]byte)(feedbackStr))
 }
 
 //ConsumerHook the hook of the consumer
@@ -99,7 +126,8 @@ func ConsumerHook(fpm *fpm.Fpm) {
 		Retained: false,
 		Qos:      (byte)(0),
 	}
-
+	// mqttConfig := fpm.GetConfig("mqtt").(map[string]string)
+	// fmt.Printf("mqttconfig: %+v \n", mqttConfig)
 	setting.Options.AddBroker(fmt.Sprintf("tcp://%s:%d",
 		"mqtt.yunplus.io",
 		1883))
@@ -123,6 +151,7 @@ func ConsumerHook(fpm *fpm.Fpm) {
 		go runCommand(fpm, &mq, &execute)
 	})
 
+	cameras := []string{"192.168.0.108"}
 	//auto push beat info
 	t := time.NewTicker(10 * time.Second)
 	defer t.Stop()
@@ -131,9 +160,12 @@ func ConsumerHook(fpm *fpm.Fpm) {
 		select {
 
 		case <-t.C:
-
-			// fmt.Println(time.Now())
-			mq.Publish("$d2s/aa/bb/beat", ([]byte)(`{"Status":"UP"}`))
+			if beatMessage, err := interval(cameras); err != nil {
+				fmt.Println(err)
+			} else {
+				// fmt.Println(time.Now())
+				mq.Publish("$d2s/yunplus/ipc/beat", utils.Struct2Bytes(beatMessage))
+			}
 
 		}
 

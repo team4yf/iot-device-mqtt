@@ -72,6 +72,15 @@ func JSON2String(j interface{}) (str string) {
 	return
 }
 
+//Struct2Bytes object 2 bytes, default {}
+func Struct2Bytes(j interface{}) (bytes []byte) {
+	bytes, err := json.Marshal(j)
+	if err != nil {
+		return ([]byte)("{}")
+	}
+	return bytes
+}
+
 //StringToStruct convert the string to struct
 func StringToStruct(data string, desc interface{}) (err error) {
 	if err = json.Unmarshal(([]byte)(data), desc); err != nil {
