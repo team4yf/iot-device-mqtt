@@ -6,6 +6,8 @@ iot-device-mqtt
 
 ```sh
 
+# all device to server topics $d2s/yunplus/ipc/+
+
 # topic:  $s2d/yunplus/ipc/demo/execute
 # ffmpeg
 { "command": "ip" }
