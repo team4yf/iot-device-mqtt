@@ -210,6 +210,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/subosito/gotenv v1.2.0 h1:Slr1R9HxAlEKefgq5jn9U+DnETlIUa6HfgEzj0g5d7s=
 github.com/subosito/gotenv v1.2.0/go.mod h1:N0PQaV/YGNqwC0u51sEeR/aUtSLEXKX9iv69rRypqCw=
+github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.1 h1:rdUwO0tpU4e3440roZAkg6Lsp0hEssOkKul3U/t9iEY=
+github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.1/go.mod h1:/2qPGCTwOVbfLnY+m2obPnHPgi1sK78fNVE/AhBPdIo=
 github.com/team4yf/yf-fpm-server-go v0.1.1 h1:GgLeymXKCNjH8RByZO+4S6XP0PQZJAsStU7Dh/It/9w=
 github.com/team4yf/yf-fpm-server-go v0.1.1/go.mod h1:+rErT87tSHsdZqSrBHMX0Jqg8M/enMwt/gx5WXyPxQk=
 github.com/tebeka/strftime v0.1.5 h1:1NQKN1NiQgkqd/2moD6ySP/5CoZQsKa1d3ZhJ44Jpmg=

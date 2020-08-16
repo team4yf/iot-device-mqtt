@@ -1,7 +1,7 @@
 {
     "mqtt": {
-        "password": "fpmpassword",
+        "pass": "fpmpassword",
         "user": "fpmuser",
-        "host": "mqtt.yunplus.io"
+        "host": "mqtt.yunplus.io:1883"
     }
 }

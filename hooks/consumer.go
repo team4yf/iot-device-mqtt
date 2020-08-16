@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/team4yf/iot-device-mqtt/pkg/pubsub"
 	"github.com/team4yf/iot-device-mqtt/pkg/utils"
 	"github.com/team4yf/yf-fpm-server-go/fpm"
 )
@@ -62,7 +59,7 @@ func interval(cameras []string) (beatMessage *beatBody, err error) {
 	return
 }
 
-func runCommand(fpm *fpm.Fpm, mq *pubsub.PubSub, execute *executeBody) {
+func runCommand(app *fpm.Fpm, execute *executeBody) {
 	finalCommand := ""
 	switch execute.Command {
 	case "ffmpeg":
@@ -113,34 +110,23 @@ func runCommand(fpm *fpm.Fpm, mq *pubsub.PubSub, execute *executeBody) {
 		feedback.Data = (string)(out)
 	}
 	feedbackStr := utils.JSON2String(feedback)
-	go (*mq).Publish("$d2s/yunplus/ipc/feedback", ([]byte)(feedbackStr))
+	go app.Execute("mqttclient.publish", &fpm.BizParam{
+		"topic": "$d2s/yunplus/ipc/feedback",
+		"payload": ([]byte)(feedbackStr),
+	})
 }
 
 //ConsumerHook the hook of the consumer
 //it will run after init,
 //make mqtt connection
-func ConsumerHook(fpm *fpm.Fpm) {
-	//fpm.GetConfig("mqtt") , it's not workiong.
-	setting := &pubsub.MqttSetting{
-		Options:  &MQTT.ClientOptions{},
-		Retained: false,
-		Qos:      (byte)(0),
-	}
-	// mqttConfig := fpm.GetConfig("mqtt").(map[string]string)
-	// fmt.Printf("mqttconfig: %+v \n", mqttConfig)
-	setting.Options.AddBroker(fmt.Sprintf("tcp://%s:%d",
-		"mqtt.yunplus.io",
-		1883))
-	setting.Options.SetClientID("iot-device-" + utils.GenUUID())
-	setting.Options.SetUsername("fpmuser")
-	setting.Options.SetPassword("fpmpassword")
+func ConsumerHook(app *fpm.Fpm) {
 
-	mq := pubsub.NewMQTTPubSub(setting)
-	fmt.Println("mqtt client inited!")
-
+	app.Execute("mqttclient.subscribe", &fpm.BizParam{
+		"topics": "$s2d/yunplus/ipc/demo/config",
+	})
 	// the demo is the device id
 	//{ "commad": "ps","argument":["vscode"],"messageID":"123", "feedback": 1}
-	mq.Subscribe("$s2d/+/ipc/demo/execute", func(topic, payload interface{}) {
+	app.Subscribe("$s2d/+/ipc/demo/execute", func(topic string, payload interface{}) {
 		fmt.Println(topic, (string)(payload.([]byte)))
 		//TODO: here
 		execute := executeBody{}
@@ -148,10 +134,28 @@ func ConsumerHook(fpm *fpm.Fpm) {
 			fmt.Println("convert the execute message error:", err)
 			return
 		}
-		go runCommand(fpm, &mq, &execute)
+		go runCommand(app, &execute)
 	})
 
 	cameras := []string{"192.168.0.108"}
+
+	app.Subscribe("$s2d/yunplus/ipc/demo/config", func(topic string, payload interface{}) {
+		fmt.Println(topic, (string)(payload.([]byte)))
+		
+		conf := make(map[string]interface{})
+		if err := utils.DataToStruct(payload.([]byte), &conf); err != nil {
+			fmt.Println(err)
+			return
+		}
+		if cameraList, ok := conf["cameras"]; ok {
+			cameras = make([]string, 0)
+			for _, c := range cameraList.([]interface{}) {
+				cameras = append(cameras, c.(string))
+			}
+
+		}
+		
+	})
 	//auto push beat info
 	t := time.NewTicker(10 * time.Second)
 	defer t.Stop()
@@ -163,8 +167,10 @@ func ConsumerHook(fpm *fpm.Fpm) {
 			if beatMessage, err := interval(cameras); err != nil {
 				fmt.Println(err)
 			} else {
-				// fmt.Println(time.Now())
-				mq.Publish("$d2s/yunplus/ipc/beat", utils.Struct2Bytes(beatMessage))
+				app.Execute("mqttclient.publish", &fpm.BizParam{
+					"topic": "$d2s/yunplus/ipc/beat",
+					"payload": utils.Struct2Bytes(beatMessage),
+				})
 			}
 
 		}

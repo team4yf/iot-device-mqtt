@@ -3,7 +3,6 @@ module github.com/team4yf/iot-device-mqtt
 go 1.14
 
 require (
-	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/magiconair/properties v1.8.1
@@ -16,6 +15,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
+	github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.1
 	github.com/team4yf/yf-fpm-server-go v0.1.1
 	github.com/teris-io/shortid v0.0.0-20171029131806-771a37caa5cf
 	github.com/toolkits/net v0.0.0-20160910085801-3f39ab6fe3ce
