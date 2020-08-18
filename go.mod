@@ -15,6 +15,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
+	github.com/syndtr/goleveldb v1.0.0
 	github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.2
 	github.com/team4yf/yf-fpm-server-go v0.1.2
 	github.com/teris-io/shortid v0.0.0-20171029131806-771a37caa5cf
