@@ -15,5 +15,7 @@
         "pass": "fpmpassword",
         "user": "fpmuser",
         "host": "mqtt.yunplus.io:1883"
-    }
+    },
+    "uuid": "ceaa191a"
+    
 }

@@ -6,3 +6,4 @@ conf/*/data
 logs/
 *.db
 *.test
+*.tar.gz

@@ -12,10 +12,11 @@ install:
 	go mod download
 
 dev:
-	go build -o $(GOBIN)/app ./main.go && $(GOBIN)/app
+	go build -o $(GOBIN)/app ./main.go && FPM_DEVICE=foodevice $(GOBIN)/app
 
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(GOBIN)/app ./main.go
+	tar -czvf $(GOBIN)/app app.tar.gz
 
 build-prod:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -tags prod -o $(GOBIN)/app ./main.go

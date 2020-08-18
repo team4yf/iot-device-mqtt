@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/team4yf/iot-device-mqtt/pkg/utils"
+	"github.com/team4yf/iot-device-mqtt/pkg/utils/kvstore"
 	"github.com/team4yf/yf-fpm-server-go/fpm"
 	"github.com/team4yf/yf-fpm-server-go/pkg/log"
 )
@@ -18,6 +19,12 @@ const (
 	cmdLsof   = "lsof -i:%d"
 	cmdIP     = "ip addr | grep 'inet' | grep -v '127.0.0.1' | grep -v 'inet6' | cut -d: -f2 | awk '{print $2}' | head -1 | awk -F / '{print $1}'"
 )
+
+var (
+	appID    string
+	deviceID string
+)
+var tickerHandler *time.Ticker
 
 type executeBody struct {
 	Command   string        `json:"command"`
@@ -39,6 +46,11 @@ type beatBody struct {
 	GatewayID string          `json:"gatewayID"`
 	TimeStamp int64           `json:"timestamp"`
 	Cameras   map[string]bool `json:"cameras"`
+}
+
+type deviceConfigBody struct {
+	BeatInterval int      `json:"beatInterval"`
+	Cameras      []string `json:"cameras"`
 }
 
 func interval(cameras []string) (beatMessage *beatBody, err error) {
@@ -123,38 +135,72 @@ func runCommand(app *fpm.Fpm, execute *executeBody) {
 //make mqtt connection
 func ConsumerHook(app *fpm.Fpm) {
 
-	app.Execute("mqttclient.subscribe", &fpm.BizParam{
-		"topics": "$s2d/yunplus/ipc/demo/config",
-	})
+	kvstore.Init("device.db")
 
-	app.Execute("mqttclient.subscribe", &fpm.BizParam{
-		"topics": "$s2d/yunplus/ipc/demo/execute",
-	})
+	appID = app.GetConfig("uuid").(string)
+	deviceID = app.GetConfig("device").(string)
+	app.Logger.Debugf("inited appID: %s, deviceID: %s", appID, deviceID)
+
+	configTopic := fmt.Sprintf(`$s2d/%s/ipc/%s/config`, appID, deviceID)
+	executeTopic := fmt.Sprintf(`$s2d/%s/ipc/%s/execute`, appID, deviceID)
+	beatTopic := fmt.Sprintf(`$d2s/%s/ipc/beat`, appID)
 	// the demo is the device id
 	//{ "commad": "ps","argument":["vscode"],"messageID":"123", "feedback": 1}
+	deviceConfig := deviceConfigBody{
+		BeatInterval: 10,
+		Cameras:      []string{"192.168.0.64"},
+	}
 
-	cameras := []string{"192.168.0.108"}
+	//load from the leveldb
+	if err := kvstore.GetObject("device-config", &deviceConfig); err != nil {
+		log.Errorf("load device config error: %v", err)
+	}
+
+	beatHandler := func() {
+		if beatMessage, err := interval(deviceConfig.Cameras); err != nil {
+			log.Error(err)
+		} else {
+			app.Execute("mqttclient.publish", &fpm.BizParam{
+				"topic":   beatTopic,
+				"payload": utils.Struct2Bytes(beatMessage),
+			})
+		}
+	}
+	go startTicker(time.Second*time.Duration(deviceConfig.BeatInterval), beatHandler)
+
+	app.Execute("mqttclient.subscribe", &fpm.BizParam{
+		"topics": configTopic,
+	})
+
+	app.Execute("mqttclient.subscribe", &fpm.BizParam{
+		"topics": executeTopic,
+	})
 
 	app.Subscribe("#mqtt/receive", func(_ string, payload interface{}) {
 
 		body := payload.(map[string]interface{})
+		log.Infof("receive error:", body)
 		topic := body["topic"].(string)
 		switch topic {
-		case "$s2d/yunplus/ipc/demo/config":
-			conf := make(map[string]interface{})
-			if err := utils.DataToStruct(body["payload"].([]byte), &conf); err != nil {
+		case configTopic:
+			oldInterval := deviceConfig.BeatInterval
+			if err := utils.DataToStruct(body["payload"].([]byte), &deviceConfig); err != nil {
 				log.Error(err)
 				return
 			}
-			if cameraList, ok := conf["cameras"]; ok {
-				cameras = make([]string, 0)
-				for _, c := range cameraList.([]interface{}) {
-					cameras = append(cameras, c.(string))
+			if err := kvstore.PutObject("device-config", &deviceConfig); err != nil {
+				log.Error(err)
+				return
+			}
+			app.Logger.Debugf("flush new config: %v", deviceConfig)
+			if oldInterval != deviceConfig.BeatInterval {
+				if tickerHandler != nil {
+					tickerHandler.Stop()
+					go startTicker(time.Second*time.Duration(deviceConfig.BeatInterval), beatHandler)
 				}
-
 			}
 
-		case "$s2d/yunplus/ipc/demo/execute":
+		case executeTopic:
 			//TODO: here
 			execute := executeBody{}
 			if err := utils.DataToStruct(body["payload"].([]byte), &execute); err != nil {
@@ -165,23 +211,18 @@ func ConsumerHook(app *fpm.Fpm) {
 		}
 
 	})
+
+}
+
+func startTicker(interval time.Duration, handler func()) {
 	//auto push beat info
-	t := time.NewTicker(10 * time.Second)
-	defer t.Stop()
+	tickerHandler = time.NewTicker(interval)
 	for {
 
 		select {
 
-		case <-t.C:
-			if beatMessage, err := interval(cameras); err != nil {
-				log.Error(err)
-			} else {
-				app.Execute("mqttclient.publish", &fpm.BizParam{
-					"topic":   "$d2s/yunplus/ipc/beat",
-					"payload": utils.Struct2Bytes(beatMessage),
-				})
-			}
-
+		case <-tickerHandler.C:
+			handler()
 		}
 
 	}
