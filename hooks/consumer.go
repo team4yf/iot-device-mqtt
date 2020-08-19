@@ -12,12 +12,13 @@ import (
 )
 
 const (
-	cmdFfmpeg = "ffmpeg -i rtsp://%s:%s@%s:554/h264/1/sub/av_stream -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 100k -bf 0 -muxdelay 0.001 http://open.yunplus.io:18081/fpmpassword/%s"
-	cmdOnvif  = "onvif-ptz %s --baseUrl=http://%s:80 -u=%s -p=%s -x=%f -y=%f -z=%f"
-	cmdNmap   = `nmap -p %s localhost | grep -E "^[1-9]" | awk '{print $1","$2 }' | sed "s/\/tcp//" | sed "s/\/udp//"`
-	cmdPs     = "ps -ef | grep %s"
-	cmdLsof   = "lsof -i:%d"
-	cmdIP     = "ip addr | grep 'inet' | grep -v '127.0.0.1' | grep -v 'inet6' | cut -d: -f2 | awk '{print $2}' | head -1 | awk -F / '{print $1}'"
+	cmdFfmpeg     = "ffmpeg -i rtsp://%s:%s@%s:554/h264/1/sub/av_stream -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 100k -bf 0 -muxdelay 0.001 http://open.yunplus.io:18081/fpmpassword/%s"
+	cmdKillFfmpeg = `ps -ef | grep ffmpeg | grep %s | grep -v "grep" | awk '{print $2}' | xargs kill -9`
+	cmdOnvif      = "onvif-ptz %s --baseUrl=http://%s:80 -u=%s -p=%s -x=%f -y=%f -z=%f"
+	cmdNmap       = `nmap -p %s %s | grep -E "^[1-9]" | awk '{print $1","$2 }' | sed "s/\/tcp//" | sed "s/\/udp//"`
+	cmdPs         = "ps -ef | grep %s"
+	cmdLsof       = "lsof -i:%d"
+	cmdIP         = "ip addr | grep 'inet' | grep -v '127.0.0.1' | grep -v 'inet6' | cut -d: -f2 | awk '{print $2}' | head -1 | awk -F / '{print $1}'"
 )
 
 var (
@@ -57,7 +58,7 @@ func interval(cameras []string) (beatMessage *beatBody, err error) {
 	beatMessage = &beatBody{
 		LocalIP: utils.GetLocalIP(),
 		// TODO: read from the env/arg
-		GatewayID: "demo",
+		GatewayID: deviceID,
 		TimeStamp: time.Now().Unix(),
 		Cameras:   make(map[string]bool, len(cameras)),
 	}
@@ -89,6 +90,17 @@ func runCommand(app *fpm.Fpm, execute *executeBody) {
 			}
 		}
 		finalCommand = fmt.Sprintf(cmdFfmpeg, execute.Argument...)
+	case "kill-ffmpeg":
+		//check exists
+		out, err := utils.RunCmd("ps -ef | grep ffmpeg | grep " + execute.Argument[len(execute.Argument)-1].(string) + ` | grep -v "grep" |wc -l`)
+		if err == nil {
+			count := strings.Trim((string)(out), " \n")
+			if count == "0" {
+				// not exists, ignore
+				return
+			}
+		}
+		finalCommand = fmt.Sprintf(cmdKillFfmpeg, execute.Argument...)
 	case "onvif":
 		finalCommand = fmt.Sprintf(cmdOnvif, execute.Argument...)
 	case "nmap":
@@ -113,7 +125,7 @@ func runCommand(app *fpm.Fpm, execute *executeBody) {
 
 	feedback := feedbackBody{
 		MessageID: execute.MessageID,
-		DeviceID:  "demo",
+		DeviceID:  deviceID,
 		Code:      -1,
 	}
 	if err != nil {
@@ -125,7 +137,7 @@ func runCommand(app *fpm.Fpm, execute *executeBody) {
 	}
 	feedbackStr := utils.JSON2String(feedback)
 	go app.Execute("mqttclient.publish", &fpm.BizParam{
-		"topic":   "$d2s/yunplus/ipc/feedback",
+		"topic":   fmt.Sprintf("$d2s/%s/ipc/feedback", appID),
 		"payload": ([]byte)(feedbackStr),
 	})
 }
@@ -135,6 +147,11 @@ func runCommand(app *fpm.Fpm, execute *executeBody) {
 //make mqtt connection
 func ConsumerHook(app *fpm.Fpm) {
 
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	kvstore.Init("device.db")
 
 	appID = app.GetConfig("uuid").(string)
@@ -179,7 +196,7 @@ func ConsumerHook(app *fpm.Fpm) {
 	app.Subscribe("#mqtt/receive", func(_ string, payload interface{}) {
 
 		body := payload.(map[string]interface{})
-		log.Infof("receive error:", body)
+		log.Debugf("receive data: %v", body)
 		topic := body["topic"].(string)
 		switch topic {
 		case configTopic:
