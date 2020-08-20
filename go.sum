@@ -227,8 +227,8 @@ github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.2 h1:EkWJW7cF5cCE48teQRxVvXLYh
 github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.2/go.mod h1:/2qPGCTwOVbfLnY+m2obPnHPgi1sK78fNVE/AhBPdIo=
 github.com/team4yf/yf-fpm-server-go v0.1.1 h1:GgLeymXKCNjH8RByZO+4S6XP0PQZJAsStU7Dh/It/9w=
 github.com/team4yf/yf-fpm-server-go v0.1.1/go.mod h1:+rErT87tSHsdZqSrBHMX0Jqg8M/enMwt/gx5WXyPxQk=
-github.com/team4yf/yf-fpm-server-go v0.1.2 h1:lLSgEJLkPMpBRwjbU0zFJ81pB+ECIGoBGGNZskSaTyc=
-github.com/team4yf/yf-fpm-server-go v0.1.2/go.mod h1:+rErT87tSHsdZqSrBHMX0Jqg8M/enMwt/gx5WXyPxQk=
+github.com/team4yf/yf-fpm-server-go v0.1.5 h1:VEUKeQTp5RstAFijlp1/YbO2+0wpIpzpxL7t/S+eNo4=
+github.com/team4yf/yf-fpm-server-go v0.1.5/go.mod h1:+rErT87tSHsdZqSrBHMX0Jqg8M/enMwt/gx5WXyPxQk=
 github.com/tebeka/strftime v0.1.5 h1:1NQKN1NiQgkqd/2moD6ySP/5CoZQsKa1d3ZhJ44Jpmg=
 github.com/tebeka/strftime v0.1.5/go.mod h1:29/OidkoWHdEKZqzyDLUyC+LmgDgdHo4WAFCDT7D/Ig=
 github.com/teris-io/shortid v0.0.0-20171029131806-771a37caa5cf h1:Z2X3Os7oRzpdJ75iPqWZc0HeJWFYNCvKsfpQwFpRNTA=
@@ -320,8 +320,10 @@ golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 h1:HyfiK1WMnHj5FXFXatD+Qs1A/
 golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191005200804-aed5e4c7ecf9/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20200814200057-3d37ad5750ed h1:J22ig1FUekjjkmZUM7pTKixYm8DvrYsvrBZdunYeIuQ=
-golang.org/x/sys v0.0.0-20200814200057-3d37ad5750ed/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200819171115-d785dc25833f h1:KJuwZVtZBVzDmEDtB2zro9CXkD9O0dpCv4o2LHbQIAw=
+golang.org/x/sys v0.0.0-20200819171115-d785dc25833f/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200820212457-1fb795427249 h1:tKP05IMsVLZ4VeeCEFmrIUmxAAx6UD8IBdPtYlYNa8g=
+golang.org/x/sys v0.0.0-20200820212457-1fb795427249/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=

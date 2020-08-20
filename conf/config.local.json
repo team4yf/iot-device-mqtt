@@ -1,4 +1,5 @@
 {
+    "addr": ":9999",
     "log":{
         "writers": "file,stdout",
         "level": "DEBUG",
