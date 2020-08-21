@@ -16,7 +16,6 @@ dev:
 
 build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(GOBIN)/app ./main.go
-	tar -zcvf app.tar.gz $(GOBIN)/app
-
+	
 build-prod:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -tags prod -o $(GOBIN)/app ./main.go

@@ -39,3 +39,29 @@ leveldb: https://github.com/syndtr/goleveldb
 config.json -> uuid: [app_id]
 
 env -> FPM_DEVICE: [device_id]
+
+## mosquitto command shell
+
+```sh
+# install mosquitto
+sudo apt  install mosquitto-clients
+
+# sub
+mosquitto_sub -h open.yunplus.io -t '$d2s/ceaa191a/ipc/beat' -u "fpmuser" -P
+
+# pub
+
+## config
+mosquitto_pub -h open.yunplus.io -t '$s2d/ceaa191a/ipc/iot-device-ipc1/config' -m '{ "beatInterval": 20, "cameras": ["172.16.11.64"]}' -u "fpmuser" -P
+
+## onvif
+mosquitto_pub -h open.yunplus.io -t '$s2d/ceaa191a/ipc/iot-device-ipc1/execute' -m '{ "command": "onvif","argument":["move", "172.16.11.64", "admin","Mima123456",0.5, 0,0],"feedback":0,"messageID":"123" }' -u "fpmuser" -P
+
+
+## ffmpeg
+mosquitto_pub -h open.yunplus.io -t '$s2d/ceaa191a/ipc/iot-device-ipc1/execute' -m '{ "command": "ffmpeg","argument":["admin","Mima123456","172.16.11.64", "abc"],"feedback":0,"messageID":"123" }
+' -u "fpmuser" -P
+
+http://open.yunplus.io:18081/static/demo.html
+
+```

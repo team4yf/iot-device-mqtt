@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	cmdFfmpeg     = "ffmpeg -i rtsp://%s:%s@%s:554/h264/1/sub/av_stream -an -f mpegts -codec:v mpeg1video -s 640x480 -b:v 100k -bf 0 -muxdelay 0.001 http://open.yunplus.io:18081/fpmpassword/%s"
+	cmdFfmpeg     = "ffmpeg -i rtsp://%s:%s@%s:554/h264/1/sub/av_stream -an -f mpegts -codec:v mpeg1video -s 1280x960 -b:v 1000k -bf 0 -muxdelay 0.001 http://open.yunplus.io:18081/fpmpassword/%s"
 	cmdKillFfmpeg = `ps -ef | grep ffmpeg | grep %s | grep -v "grep" | awk '{print $2}' | xargs kill -9`
 	cmdOnvif      = "onvif-ptz %s --baseUrl=http://%s:80 -u=%s -p=%s -x=%f -y=%f -z=%f"
 	cmdNmap       = `nmap -p %s %s | grep -E "^[1-9]" | awk '{print $1","$2 }' | sed "s/\/tcp//" | sed "s/\/udp//"`
@@ -155,7 +155,7 @@ func ConsumerHook(app *fpm.Fpm) {
 	kvstore.Init("device.db")
 
 	appID = app.GetConfig("uuid").(string)
-	deviceID = app.GetConfig("device").(string)
+	deviceID = app.GetConfig("deviceID").(string)
 	app.Logger.Debugf("inited appID: %s, deviceID: %s", appID, deviceID)
 
 	configTopic := fmt.Sprintf(`$s2d/%s/ipc/%s/config`, appID, deviceID)
