@@ -15,6 +15,6 @@ func main() {
 	app.AddHook("AFTER_INIT", hooks.ConsumerHook, 10)
 	app.Init()
 
-	app.Run(":9999")
+	app.Run()
 
 }

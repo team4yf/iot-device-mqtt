@@ -186,11 +186,7 @@ func ConsumerHook(app *fpm.Fpm) {
 	go startTicker(time.Second*time.Duration(deviceConfig.BeatInterval), beatHandler)
 
 	app.Execute("mqttclient.subscribe", &fpm.BizParam{
-		"topics": configTopic,
-	})
-
-	app.Execute("mqttclient.subscribe", &fpm.BizParam{
-		"topics": executeTopic,
+		"topics": []string{configTopic, executeTopic},
 	})
 
 	app.Subscribe("#mqtt/receive", func(_ string, payload interface{}) {

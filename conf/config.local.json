@@ -11,11 +11,16 @@
         "log_rotate_size": 1,
         "log_backup_count": 7
     },
+    "addr": ":9999",
     "mqtt": {
         "pass": "fpmpassword",
         "user": "fpmuser",
-        "host": "mqtt.yunplus.io:1883"
+        "host": "mqtt.yunplus.io:1883",
+        "clientID":"iot-device-test",
+        "qos": 0,
+        "retained": false
     },
-    "uuid": "ceaa191a"
+    "uuid": "ceaa191a",
+    "deviceID": "foo"
     
 }
