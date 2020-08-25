@@ -218,6 +218,8 @@ github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.3 h1:ZjoNI+Jpu9IsznjlGtMRgYnvN
 github.com/team4yf/fpm-go-plugin-mqtt-client v0.0.3/go.mod h1:cLkRztmNAXUIg0cuAAiMmKjKPQyqu9V27HpklTfgsGE=
 github.com/team4yf/yf-fpm-server-go v0.1.6 h1:uXw15k0AQKMX74jo+ceSyucFEJxfm3XhO0+H1fUTp4g=
 github.com/team4yf/yf-fpm-server-go v0.1.6/go.mod h1:+rErT87tSHsdZqSrBHMX0Jqg8M/enMwt/gx5WXyPxQk=
+github.com/team4yf/yf-fpm-server-go v0.1.11 h1:F8XPAD0jZiu16udojuMWVJCbKUWNFidRs2o8mgulg5o=
+github.com/team4yf/yf-fpm-server-go v0.1.11/go.mod h1:r6MRkcEIZ9Rx5vUr/vGvHl7cT48PqURzbFkVqoqvSV8=
 github.com/tebeka/strftime v0.1.5 h1:1NQKN1NiQgkqd/2moD6ySP/5CoZQsKa1d3ZhJ44Jpmg=
 github.com/tebeka/strftime v0.1.5/go.mod h1:29/OidkoWHdEKZqzyDLUyC+LmgDgdHo4WAFCDT7D/Ig=
 github.com/teris-io/shortid v0.0.0-20171029131806-771a37caa5cf h1:Z2X3Os7oRzpdJ75iPqWZc0HeJWFYNCvKsfpQwFpRNTA=
