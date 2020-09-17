@@ -8,7 +8,6 @@ import (
 	"github.com/team4yf/iot-device-mqtt/pkg/utils"
 	"github.com/team4yf/iot-device-mqtt/pkg/utils/kvstore"
 	"github.com/team4yf/yf-fpm-server-go/fpm"
-	"github.com/team4yf/yf-fpm-server-go/pkg/log"
 )
 
 const (
@@ -116,10 +115,10 @@ func runCommand(app *fpm.Fpm, execute *executeBody) {
 	out, err := utils.RunCmd(finalCommand)
 	if execute.Feedback == 0 {
 		if err != nil {
-			log.Infof("run command error: %s, error:\n %v\n", finalCommand, err)
+			app.Logger.Infof("run command error: %s, error:\n %v\n", finalCommand, err)
 			return
 		}
-		log.Infof("run command success: %s, out:\n %s\n", finalCommand, (string)(out))
+		app.Logger.Infof("run command success: %s, out:\n %s\n", finalCommand, (string)(out))
 		return
 	}
 
@@ -170,12 +169,12 @@ func ConsumerHook(app *fpm.Fpm) {
 
 	//load from the leveldb
 	if err := kvstore.GetObject("device-config", &deviceConfig); err != nil {
-		log.Errorf("load device config error: %v", err)
+		app.Logger.Errorf("load device config error: %v", err)
 	}
 
 	beatHandler := func() {
 		if beatMessage, err := interval(deviceConfig.Cameras); err != nil {
-			log.Error(err)
+			app.Logger.Error(err)
 		} else {
 			app.Execute("mqttclient.publish", &fpm.BizParam{
 				"topic":   beatTopic,
@@ -192,17 +191,17 @@ func ConsumerHook(app *fpm.Fpm) {
 	app.Subscribe("#mqtt/receive", func(_ string, payload interface{}) {
 
 		body := payload.(map[string]interface{})
-		log.Debugf("receive data: %v", body)
+		app.Logger.Debugf("receive data: %v", body)
 		topic := body["topic"].(string)
 		switch topic {
 		case configTopic:
 			oldInterval := deviceConfig.BeatInterval
 			if err := utils.DataToStruct(body["payload"].([]byte), &deviceConfig); err != nil {
-				log.Error(err)
+				app.Logger.Error(err)
 				return
 			}
 			if err := kvstore.PutObject("device-config", &deviceConfig); err != nil {
-				log.Error(err)
+				app.Logger.Error(err)
 				return
 			}
 			app.Logger.Debugf("flush new config: %v", deviceConfig)
@@ -217,7 +216,7 @@ func ConsumerHook(app *fpm.Fpm) {
 			//TODO: here
 			execute := executeBody{}
 			if err := utils.DataToStruct(body["payload"].([]byte), &execute); err != nil {
-				log.Infof("convert the execute message error:", err)
+				app.Logger.Infof("convert the execute message error:", err)
 				return
 			}
 			go runCommand(app, &execute)
